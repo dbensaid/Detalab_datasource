@@ -16,4 +16,12 @@ def hello_world():
     gtag('config', ' G-HSQTDR354L');
     </script>
     """
-    return prefix_google + "Hello World, welcome on Driss Bensaid website"
+    return prefix_google + "Hello World, welcome on Driss Bensaid websites"
+
+@app.route('/logger')
+def logger():
+    # Print a log on python
+    print("Logger accessed!")
+
+    # Print a log on the browser
+    return "Logger accessed"

@@ -1,12 +1,16 @@
-from flask import Flask, render_template
+from collections import Counter
+import collections
+from datetime import datetime
+from pytrends.request import TrendReq
+from flask import Flask, render_template, send_file
 import requests
 import time
 
 
 app = Flask(__name__)
 
-@app.route('/', methods=["GET"])
 
+@app.route('/', methods=["GET"])
 def hello_world():
     prefix_google = """
     <!-- Google tag (gtag.js) -->
@@ -19,27 +23,89 @@ def hello_world():
     gtag('config', ' G-HSQTDR354L');
     </script>
     """
+    # adding some cool button and text on my page
+    text = """
 
-    return prefix_google + "Hello World, welcome on Driss Bensaid websites. \nAll pages: /  \n /logger \n /cookies \n /ganalytics"
+  
+  <html>
+<head>
+<style>
+.button {
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+
+  background-color:  #AFEEEE /* cyant */ #doesn't work
+}
+
+.button1 {background-color: #4CAF50;} /* Green */
+.button2 {background-color: #008CBA;} /* Blue */
+
+
+</style>
+</head>
+<body>
+
+<h1>Hello World</h1>
+<p>Welcome on Driss Bensaid websites, brows on the differents pages with those buttons</p>
+
+<a href= "https://px0vzh.deta.dev/logger">
+<button class="button button1" >/logger</button>
+</a>
+
+<a href= "https://px0vzh.deta.dev/logger_improved">
+<button class="button button2">/logger_improved</button>
+</a>
+
+<a href= "https://px0vzh.deta.dev/cookies">
+<button class="button button1">/cookies</button>
+</a>
+
+<a href= "https://px0vzh.deta.dev/ganalytics">
+<button class="button button2">/ganalytics</button>
+</a>
+
+<a href= "https://px0vzh.deta.dev/google_trend_covid">
+<button class="button button1">/google_trend_covid</button>
+</a>
+
+<a href= "https://px0vzh.deta.dev/timer_decorator">
+<button class="button button2">/timer_decorator</button>
+</a>
+
+</body>
+</html>
+
+
+    
+    """
+    return prefix_google + text
+
 
 @app.route('/logger')
 def logger():
     # Print a log on python
     print("Logger accessed!")
 
-
     # Print a log on the browser
-    return "This is a log on the browser" 
+    return "This is a log on the browser"
 
-@app.route('/logger_improved', methods =["GET"])
+
+@app.route('/logger_improved', methods=["GET"])
 # Texbox attemps
 def logger_improved():
     # Print a log on python
     print("Logger accessed!")
 
-
     # Print a log on the browser
     return render_template('template.html')
+
 
 @app.route('/cookies')
 def getcookies():
@@ -52,14 +118,15 @@ def getcookies():
     # Return the cookies as a dictionary
     return cookies
 
+
 @app.route('/ganalytics')
-
 def ganalytics():
-    req = requests.get("https://analytics.google.com/analytics/web/?authuser=1#/p344251322/reports/intelligenthome?params=_u..nav%3Dmaui")
+    req = requests.get(
+        "https://analytics.google.com/analytics/web/?authuser=1#/p344251322/reports/intelligenthome?params=_u..nav%3Dmaui")
     # Return the response as text
-    return req.text 
+    return req.text
 
-#ganalytic attemps( blocked because i wasn't able to do any new pip install and find the key find location on g api)
+# ganalytic attemps( blocked because i wasn't able to do any new pip install and find the key find location on g api)
 
 # import google.auth
 # from google.auth.transport.requests import Request
@@ -162,10 +229,10 @@ def ganalytics():
 
 
 #                                                           TP 3
-#FINALLY SUCCED TO HAVE SOME PIP IMPORT DETECTED YAAAY! (Changing version of python)
+# FINALLY SUCCED TO HAVE SOME PIP IMPORT DETECTED YAAAY! (Changing version of python)
 
-from pytrends.request import TrendReq
-from datetime import datetime
+# Google trend part
+
 
 @app.route('/google_trend_covid', methods=["GET"])
 def google_trend_covid():
@@ -174,29 +241,30 @@ def google_trend_covid():
     pytrends.build_payload(kw_list=['covid'])
     interest_over_time_df = pytrends.interest_over_time()
     covid = interest_over_time_df['covid'].values.tolist()
-    dates = [datetime.fromtimestamp(int(date/1e9)).date().isoformat() for date in interest_over_time_df.index.values.tolist()]
+    dates = [datetime.fromtimestamp(int(date/1e9)).date().isoformat()
+             for date in interest_over_time_df.index.values.tolist()]
 
-    params = { 
+    params = {
         "type": 'line',
         "data": {
-        "labels": dates,
-        "datasets": [{
-            "data": covid,
-            "label": "covid",
-            "borderColor": "#BB5E5E",
-            "fill": 'false'
+            "labels": dates,
+            "datasets": [{
+                "data": covid,
+                "label": "covid",
+                "borderColor": "#BB5E5E",
+                "fill": 'false'
             }]},
-            
-            "options": {
-                "title": {
+
+        "options": {
+            "title": {
                 "display": 'true',
                 "text": '"Covid" "intersest" percentage research over time'
-                },
-                "hover": {
+            },
+            "hover": {
                 "mode": 'index',
                 "intersect": 'true'
-                },
-            }
+            },
+        }
     }
 
     prefix_google = """
@@ -214,3 +282,16 @@ def google_trend_covid():
     """
 
     return prefix_google
+
+
+# Timer log part
+
+#import problem on the deta deploy this time (not because of windows os)
+#import matplotlib.pyplot as plt
+
+#Check the Count_word_dict_and_counter_creator jupyter notbook to see how the image has been created (it is usefull to create it each time we deploy the website)
+
+@app.route('/timer_decorator')
+def timer_decorator():
+
+    return send_file("count_word_dict_and_counter.png", mimetype="image/png")

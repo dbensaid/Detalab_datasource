@@ -1,5 +1,6 @@
 from flask import Flask, render_template
 import requests
+import time
 
 
 app = Flask(__name__)
@@ -30,15 +31,15 @@ def logger():
     # Print a log on the browser
     return "This is a log on the browser" 
 
-# @app.route('/logger_improved')
-#Texbox attemps
-# def logger():
-#     # Print a log on python
-#     print("Logger accessed!")
+@app.route('/logger_improved', methods =["GET"])
+# Texbox attemps
+def logger_improved():
+    # Print a log on python
+    print("Logger accessed!")
 
 
-#     # Print a log on the browser
-#     return render_template('/template.html')
+    # Print a log on the browser
+    return render_template('template.html')
 
 @app.route('/cookies')
 def getcookies():
@@ -160,3 +161,56 @@ def ganalytics():
 #     print_results(get_results(service, profile_id))
 
 
+#                                                           TP 3
+#FINALLY SUCCED TO HAVE SOME PIP IMPORT DETECTED YAAAY! (Changing version of python)
+
+from pytrends.request import TrendReq
+from datetime import datetime
+
+@app.route('/google_trend_covid', methods=["GET"])
+def google_trend_covid():
+
+    pytrends = TrendReq(hl='en-US', tz=360)
+    pytrends.build_payload(kw_list=['covid'])
+    interest_over_time_df = pytrends.interest_over_time()
+    covid = interest_over_time_df['covid'].values.tolist()
+    dates = [datetime.fromtimestamp(int(date/1e9)).date().isoformat() for date in interest_over_time_df.index.values.tolist()]
+
+    params = { 
+        "type": 'line',
+        "data": {
+        "labels": dates,
+        "datasets": [{
+            "data": covid,
+            "label": "covid",
+            "borderColor": "#BB5E5E",
+            "fill": 'false'
+            }]},
+            
+            "options": {
+                "title": {
+                "display": 'true',
+                "text": '"Covid" "intersest" percentage research over time'
+                },
+                "hover": {
+                "mode": 'index',
+                "intersect": 'true'
+                },
+            }
+    }
+
+    prefix_google = """
+
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+        <canvas id="myChart" width="30" height="30"></canvas>""" + f"""
+        <script>
+        var ctx = document.getElementById('myChart');
+        var myChart = new Chart(ctx, {params});
+        </script>
+
+
+
+    """
+
+    return prefix_google
